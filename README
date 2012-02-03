@@ -1,0 +1,22 @@
+Copyright (C) 2012 Magnus Edenhill
+
+Trivial CLI frontend to apt-* commands, providing a faster work-flow
+for common apt-get/apt-cache operations, such as install and search.
+
+It's trivial, really.
+
+Typical usage:
+ a i perl-doc   <-- install perl-doc (same as: sudo apt-get install perl-doc)
+
+ a s librd      <-- search for a package (librd), then select desired
+                    package and pick 'Show' to display output from
+                    'apt-cache show <pkg>' or/and 'Install' to install it.
+
+ a l /bin/bash  <-- locate and print what package provides the specified file.
+
+Its nothing new, just seconds saved here and there, summing up to hundreds of
+saved seconds per year!
+
+
+Install it in your PATH and off you go the next time it's time to install
+a package.

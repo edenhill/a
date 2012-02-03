@@ -1,0 +1,180 @@
+#!/usr/bin/env perl
+#
+# Copyright (C) 2012 Magnus Edenhill
+#
+#
+# Trivial CLI frontend to apt-* commands, providing a faster work-flow
+# for common apt-get/apt-cache operations, such as install and search.
+#
+# It's trivial, really.
+#
+# Typical usage:
+#  a i perl-doc   <-- install perl-doc (same as: sudo apt-get install perl-doc)
+#
+#  a s librd      <-- search for a package (librd), then select desired
+#                     package and pick 'Show' to display output from
+#                     'apt-cache show <pkg>' or/and 'Install' to install it.
+#
+#  a l /bin/bash  <-- locate and print what package provides the specified file
+#
+#
+# Its nothing new, just seconds saved here and there, summing up to hundreds of
+# saved seconds per year!
+#
+# Install it in your PATH and off you go the next time it's time to install
+# a package.
+#
+
+
+my $ret = 0;
+my $op;
+my $prog = "apt-get";
+my $first = shift @ARGV or usage();
+my $priv = 0; # Priviledged (sudo)?
+
+my %alias = ('i' => { op=>'install', prog=>'apt-get', priv=>1 },
+	     'install' => { op=>'install', prog=>'apt-get', priv=>1 },
+	     's' => { op=>'search', prog=>'apt-cache' },
+	     'search' => { op=>'search', prog=>'apt-cache' },
+	     'l' => { op=>'-S', prog=>'dpkg' },
+	     'locate' => { op=>'-S', prog=>'dpkg' }
+	    );
+
+
+if (defined($alias{$first})) {
+    $op   = $alias{$first}->{op};
+    $prog = $alias{$first}->{prog};
+    $priv = $alias{$first}->{priv};
+} else {
+    # Default to apt-get unpriviledged
+    $op = $first;
+    print "# '$first' not recognized; using unpriviledged apt-get\n";
+}
+
+
+if ($op eq "search") {
+    my $str = "";
+    foreach my $s (@ARGV) {
+	$s =~ s/\"/\\\"/g;
+	$str .= "\"$s\" ";
+    }
+
+    do_search($str);
+
+} else {
+    my $cmd = "";
+    $cmd = "sudo " if ($priv);
+
+    my $args = "";
+    foreach my $arg (@ARGV) {
+	$args .= "\"$arg\" ";
+    }
+
+    $cmd .= "$prog $op $args";
+    $ret = system($cmd);
+}
+
+
+exit $ret;
+
+
+
+sub do_search {
+    my $srchstr = shift @_;
+
+    # FIXME: use --file .. instead, for indefinately long listings.
+    my $dcmd = "dialog --title 'Search results' " .
+      "--menu 'Search results for:\\n$srchstr\\n' 25 120 10 ";
+
+    open(A, "apt-cache search $srchstr |") or die("$0: apt-cache: $!\n");
+
+    my $cnt = 0;
+    while (<A>) {
+	chomp;
+
+	if (/^(\S+) - (\S.*)\s*$/) {
+	    $dcmd .= "$1 \"$2\" ";
+	    $cnt++;
+	}
+    }
+
+    close(A);
+
+    die("No matches for '$srchstr'\n") unless $cnt > 0;
+
+    my $tempfile = "/tmp/_asd.$$";
+    my $selcmd;
+
+    while (1) {
+
+	my $r = system($dcmd . " 2> $tempfile");
+
+	if ($r == -1) {
+	    unlink($tempfile);
+	    die("Dialog failed; argument list is probably too long.\n" .
+		"Limit your search, or fix 'a' to use --file instead.\n");
+	} elsif ($r) {
+	    unlink($tempfile);
+	    die("User aborted\n");
+	}
+
+	my $choice = `cat $tempfile`;
+	chomp $choice;
+	if ($choice eq "") {
+	    unlink($tempfile);
+	    exit 0;
+	}
+
+	while (1) {
+	    $selcmd = "dialog --title 'Operate' " .
+	      "--menu 'Select action for $choice' 25 70 5  " .
+		"'Install' 'Install package' " .
+		  "'Show' 'Show package info' " .
+		    "'Back' 'Return to search results'";
+
+	    system($selcmd . " 2> $tempfile");
+	    my $action = `cat $tempfile`;
+	    chomp $action;
+	    if ($action eq "Show") {
+		system("apt-cache show '$choice'");
+		print "\nPress enter when done reading\n";
+		my $x = <STDIN>;
+		next;
+	    } elsif ($action eq "Install") {
+		system("sudo apt-get install '$choice'");
+		print "\nPress enter to return to search results\n";
+		my $x = <STDIN>;
+		last;
+	    } else {
+		last;
+	    }
+	}
+    }
+    unlink($tempfile);
+}
+
+
+
+sub usage {
+    die("Usage: $0 <cmd> [<args..>]\n" .
+	"\n" .
+	"CLI frontend to the apt-* utilities to minimise the amount of " .
+	"typing needed.\n" .
+	"\n" .
+	"  cmd := search | s | install | i | locate | l | * \n" .
+	"\n" .
+	"     search  := same as 'apt-cache search ...'\n" .
+	"     install := same as 'sudo apt-get install ...'\n" .
+	"     locate  := find package for provided path/file (dpkg -S)\n" .
+	"     *       := any other apt-get command\n" .
+	"\n" .
+	"Examples:\n" .
+	"  a i perl-doc  <-- install 'perl-doc' package\n" .
+	"  a s librd     <-- search for 'librd' in packages\n" .
+	"  a l /bin/bash <-- locate package name by file path\n" .
+	"  a source bash <-- unknown op, defaults to apt-get\n" .
+	"\n" .
+	"NOTE: The 'dialog' package must be installed for the 'search'\n" .
+	"      option to have much effect.\n" .
+	"\n");
+}
