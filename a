@@ -24,6 +24,9 @@
 # Install it in your PATH and off you go the next time it's time to install
 # a package.
 #
+# The 'dialog' package must be installed for the 'search' operation to
+# have any effect.
+#
 
 
 my $ret = 0;
