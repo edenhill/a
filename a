@@ -40,7 +40,8 @@ my %alias = ('i' => { op=>'install', prog=>'apt-get', priv=>1 },
 	     's' => { op=>'search', prog=>'apt-cache' },
 	     'search' => { op=>'search', prog=>'apt-cache' },
 	     'l' => { op=>'-S', prog=>'dpkg' },
-	     'locate' => { op=>'-S', prog=>'dpkg' }
+	     'locate' => { op=>'-S', prog=>'dpkg' },
+	     'show' => { op=>'show', prog=>'apt-cache' }
 	    );
 
 
