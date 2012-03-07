@@ -41,7 +41,11 @@ my %alias = ('i' => { op=>'install', prog=>'apt-get', priv=>1 },
 	     'search' => { op=>'search', prog=>'apt-cache' },
 	     'l' => { op=>'-S', prog=>'dpkg' },
 	     'locate' => { op=>'-S', prog=>'dpkg' },
-	     'show' => { op=>'show', prog=>'apt-cache' }
+	     'show' => { op=>'show', prog=>'apt-cache' },
+	     'update' => { op=>'update', prog=>'apt-get', priv=>1 },
+	     'u' => { op=>'update', prog=>'apt-get', priv=>1 },
+	     'upgrade' => { op=>'upgrade', prog=>'apt-get', priv=>1 },
+	     'dist-upgrade' => { op=>'dist-upgrade', prog=>'apt-get', priv=>1},
 	    );
 
 
