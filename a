@@ -138,6 +138,8 @@ sub do_search {
 	      "--menu 'Select action for $choice' 25 70 5  " .
 		"'Install' 'Install package' " .
 		  "'Show' 'Show package info' " .
+		    "'Source' 'Download source package' " .
+		    "'Source-Build' 'Download and build source package' " .
 		    "'Back' 'Return to search results'";
 
 	    system($selcmd . " 2> $tempfile");
@@ -150,6 +152,13 @@ sub do_search {
 		next;
 	    } elsif ($action eq "Install") {
 		system("sudo apt-get install '$choice'");
+		print "\nPress enter to return to search results\n";
+		my $x = <STDIN>;
+		last;
+	    } elsif ($action =~ /^Source/) {
+		my $opt = "";
+		$opt .= " -b" if ($action =~ /Build/);
+		system("apt-get source $opt '$choice'");
 		print "\nPress enter to return to search results\n";
 		my $x = <STDIN>;
 		last;
