@@ -46,6 +46,11 @@ my %alias = ('i' => { op=>'install', prog=>'apt-get', priv=>1 },
 	     'u' => { op=>'update', prog=>'apt-get', priv=>1 },
 	     'upgrade' => { op=>'upgrade', prog=>'apt-get', priv=>1 },
 	     'dist-upgrade' => { op=>'dist-upgrade', prog=>'apt-get', priv=>1},
+	     'remove' => { op=>'remove', prog=>'apt-get', priv=>1},
+	     'purge' => { op=>'purge', prog=>'apt-get', priv=>1},
+	     'autoremove' => { op=>'autoremove', prog=>'apt-get', priv=>1},
+	     'autoclean' => { op=>'autoclean', prog=>'apt-get', priv=>1},
+	     'clean' => { op=>'clean', prog=>'apt-get', priv=>1},
 	    );
 
 
